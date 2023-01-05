@@ -79,10 +79,11 @@ class AddProducts(customtkinter.CTkToplevel):
         self.headerlabel = customtkinter.CTkLabel(master=self, text="Neues Produkt erstellen", font=self.header_font)
         self.headerlabel.grid(row=0, column=0, columnspan=2, sticky="ew")
 
-        self.namelabel = customtkinter.CTkLabel(master=self, text="Produktname:" justify="right")
+        self.namelabel = customtkinter.CTkLabel(master=self, text="Produktname:", justify="right")
         self.namelabel.grid(row=1, column=0, sticky="e")
 
         self.nameentry = customtkinter.CTkEntry(master=self)
+        self.nameentry.grid(row=1, colum=1, sticky="ew")
 
         pass
     
