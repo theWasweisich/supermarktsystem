@@ -160,7 +160,53 @@ def get_properties_returned(cursor, product):
     for i in range(len(response)):
         _, name, price, stock = response[i]
         price = float(price)
-        if stock == 0:
+        return (name, price, stock)
+
+def get_every_name(cursor):
+    """Returns
+    
+    1. A list with every item with its name, price and stock in a tupel
+    2. A list with just every name of the products"""
+    cursor.execute("SELECT * FROM products")
+    response = cursor.fetchall()
+    if response == []:
+        return None
+    list = []
+    namelist = []
+    for i in range(len(response)):
+        _, name, price, stock = response[i]
+        stock = int(stock)
+        price = float(price)
+        inputtupel = (name, price, stock)
+        list.append(inputtupel)
+        namelist.append(name)
+    return list, namelist
+
+def edit_stock(cursor, product, amount, operation):
+    """
+
+Edits the stock of a product with the name of "product" by the amount of "amount".
+
+    """
+    if operation == "-":
+        try:
+            cursor.execute(f"SELECT stock FROM products WHERE name='{product}'")
+            old_stock = cursor.fetchall()
+            if old_stock >= amount:
+                stock = old_stock - amount
+                cursor.execute(f"UPDATE products SET stock='{stock}' WHERE name='{product}'")
+                return True
+            else:
+                return False
+        except:
             return False
-        else:
-            return (name, price)
+
+    if operation == "+":
+        try:
+            cursor.execute(f"SELECT * FROM products WHERE name='{product}'")
+            old_stock = cursor.fetchall()
+            stock = old_stock + amount
+            cursor.execute(f"UPDATE products SET stock='{stock}' WHERE name='{product}'")
+            return True
+        except:
+            return False
