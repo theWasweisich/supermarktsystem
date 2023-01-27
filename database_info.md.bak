@@ -71,7 +71,6 @@
 2. `name`; varchar(255); Productname, not null;
 3. `price`; integer; middlename, default = null;
 4. `stock`; integer; Wie viel im Lager vorhandn ist., not null, default = 1;
-5. `position`; Position des Produktes; Format: (reihe, regal)
 
 &nbsp;
 &nbsp;
@@ -85,6 +84,6 @@
 
 &nbsp;
 
-`INSERT INTO products (name, price, stock, position) VALUES (?Produktname?,?Produktpreis?, ?#Products in Stock?,?Position?)`
+`INSERT INTO products (name, price, stock) VALUES (?Produktname?,?Produktpreis?, ?#Products in Stock?)`
 
-*Hinweis: `stock` und `position` ist optional :)*
+*Hinweis: `stock` ist optional :)*
