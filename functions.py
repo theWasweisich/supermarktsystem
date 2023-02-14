@@ -1,20 +1,21 @@
-def display(name, price, amount="1x"):
+def display(name, price, amount="1"):
     """ Beautifies the variables name, price, amount into one string for func. addtocart() """
     
     pricestr = str(price)
-    pricelist = pricestr.split(".")
-    if len(pricelist[0]) == 1:
-        pricelist[0] = "0" + pricelist[0]
-    if len(pricelist[1]) == 1:
-        pricelist[1] = pricelist[1] + "0"
-    pricestr = pricelist[0] + "." + pricelist[1]
+    if pricestr.find(".") != -1:
+        pricelist = pricestr.split(".")
+        if len(pricelist[0]) == 1:
+            pricelist[0] = "0" + pricelist[0]
+        if len(pricelist[1]) == 1:
+            pricelist[1] = pricelist[1] + "0"
+        pricestr = pricelist[0] + "." + pricelist[1]
     pricelen = len(pricestr)
     namelen = len(name)
     spaces = 20-(pricelen + namelen)
     strspaces = " "*spaces
     name = name.strip()
-    amount = amount.strip()
-    string = amount + " " + name + strspaces + pricestr + " €"
+    amount = str(amount)
+    string = amount + "x" + " " + name + strspaces + pricestr + " €"
     return string
 
 def beautify_result(result):
