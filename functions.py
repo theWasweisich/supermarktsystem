@@ -1,27 +1,28 @@
-def display(name, price, amount="1x"):
+def display(name, price, amount="1"):
     """ Beautifies the variables name, price, amount into one string for func. addtocart() """
     
     pricestr = str(price)
-    pricelist = pricestr.split(".")
-    if len(pricelist[0]) == 1:
-        pricelist[0] = "0" + pricelist[0]
-    if len(pricelist[1]) == 1:
-        pricelist[1] = pricelist[1] + "0"
-    pricestr = pricelist[0] + "." + pricelist[1]
+    if pricestr.find(".") != -1:
+        pricelist = pricestr.split(".")
+        if len(pricelist[0]) == 1:
+            pricelist[0] = "0" + pricelist[0]
+        if len(pricelist[1]) == 1:
+            pricelist[1] = pricelist[1] + "0"
+        pricestr = pricelist[0] + "." + pricelist[1]
     pricelen = len(pricestr)
     namelen = len(name)
     spaces = 20-(pricelen + namelen)
     strspaces = " "*spaces
     name = name.strip()
-    amount = amount.strip()
-    string = amount + " " + name + strspaces + pricestr + " €"
+    amount = str(amount)
+    string = amount + "x" + " " + name + strspaces + pricestr + " €"
     return string
 
 def beautify_result(result):
     print(33*" "+"\n"+"||"+" "*2+"Produkt"+" "*2+"||"+" "+"Preis"+" "+"||"+" "+"Lager"+" "+"||")
     print("||"+(" "*11)+"||"+(" "*7)+"||"+(" "*7)+"||")
     for i in range(len(result)):
-        _, name, price, stock = result[i]
+        _, name, price, stock, _ = result[i]
         abstand_name, abstand_price, abstand_stock = (11-len(name)), (7-len(str(price))), (7-len(str(stock)))
         print("||"+" "*abstand_name+f"{name}"+"||"+" "*abstand_price+f"{price}"+"||"+" "*abstand_stock+f"{stock}"+"||")
         print("||"+(" "*11)+"||"+(" "*7)+"||"+(" "*7)+"||")
@@ -84,7 +85,7 @@ def get_property(cursor, type, answer=None):
         if result == []:
             print("Produkt nicht gefunden!")
         for i in range(len(result)):
-            _, name, preis, stock = result[i]
+            _, name, preis, stock, _ = result[i]
             preis = str(preis)
             preis = preis.replace(".",",")
             if type == "preis":
@@ -158,7 +159,7 @@ def get_properties_returned(cursor, product):
     if response == []:
         return (None, None)
     for i in range(len(response)):
-        _, name, price, stock = response[i]
+        _, name, price, stock, _ = response[i]
         price = float(price)
         return (name, price, stock)
 
@@ -174,7 +175,7 @@ def get_every_name(cursor):
     list = []
     namelist = []
     for i in range(len(response)):
-        _, name, price, stock = response[i]
+        _, name, price, stock, _ = response[i]
         stock = int(stock)
         price = float(price)
         inputtupel = (name, price, stock)

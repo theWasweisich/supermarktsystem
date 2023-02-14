@@ -30,11 +30,11 @@ class Buttons(customtkinter.CTkFrame):
 
 
 class VerwaltungsButtons(customtkinter.CTkFrame):
-    def __init__(self, *args, addProducts_func, deleteProduct_func, editProduct_func, **kwargs):
+    def __init__(self, *args, createProducts_func, deleteProduct_func, editProduct_func, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.editProduct_func = editProduct_func
-        self.addProducts_func = addProducts_func
+        self.createProducts_func = createProducts_func
         self.deleteProduct_func = deleteProduct_func
         self.columnconfigure(0, weight=1)
 
@@ -44,7 +44,7 @@ class VerwaltungsButtons(customtkinter.CTkFrame):
         self.headlabel = customtkinter.CTkLabel(master=self, text="Verwaltungs\nbuttons", font=self.headlabel_font)
         self.headlabel.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
-        self.addNewProduct = customtkinter.CTkButton(master=self, text="Neues Produkt erstellen", command=self.addProducts_func, font=self.btn_font)
+        self.addNewProduct = customtkinter.CTkButton(master=self, text="Neues Produkt erstellen", command=self.createProducts_func, font=self.btn_font)
         self.addNewProduct.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
         self.editProductbtn = customtkinter.CTkButton(master=self, text="Produkt bearbeiten", command=self.editProduct_func, font=self.btn_font)
@@ -57,8 +57,10 @@ class VerwaltungsButtons(customtkinter.CTkFrame):
         pass
 
 class AddToCart(customtkinter.CTkToplevel):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, addtocartreadback, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.addtocartreadback = addtocartreadback
 
         self.title("Produkt dem Warenkorb hinzufügen")
         self.geometry("50+20")
@@ -68,6 +70,8 @@ class AddToCart(customtkinter.CTkToplevel):
 
         self.grid_columnconfigure((0,1), weight=1)
         self.grid_rowconfigure(0, weight=1)
+
+        self.warning_color = "red"
 
         self.header_font = customtkinter.CTkFont("sans-serif", 20)
         self.normal_font = customtkinter.CTkFont("sans-serif", 12)
@@ -81,20 +85,75 @@ class AddToCart(customtkinter.CTkToplevel):
         self.selectproductlabel.grid(row=1, column=0, pady=20, padx=10, sticky="e")
 
         self.productselectbox = customtkinter.CTkOptionMenu(master=self, values=self.namelist, font=self.normal_font, command=self.handle_product)
+        self.productselectbox.set("Produkt auswählen")
         self.productselectbox.grid(row=1, column=1, pady=20, padx=10, sticky="w")
 
         self.stockmessage = customtkinter.CTkLabel(master=self, text="", font=self.normal_font, text_color="green")
         self.stockmessage.grid(row=2, column=0, columnspan=2, pady=10, padx=20, sticky="ew")
 
-        self.amountlabel = customtkinter.CTkLabel(master=self, text="Stückzahl", font=self.normal_font)
+        self.amountlabel = customtkinter.CTkLabel(master=self, text="Stückzahl:", font=self.normal_font)
         self.amountlabel.grid(row=3, column=0, pady=20, padx=10, sticky="e")
 
         self.amountentry = customtkinter.CTkEntry(master=self, textvariable=self.amountvariable)
-        self.amountentry.grid(row=3, column=1, pady=20, padx=10, sticky="e")
+        self.amountentry.grid(row=3, column=1, pady=20, padx=10, sticky="w")
 
+        self.messagelabel = customtkinter.CTkLabel(master=self, text="", font=self.normal_font)
+        self.messagelabel.grid(row=4, column=0, columnspan=2, padx=10, pady=20, sticky="ew")
+
+        self.add_button = customtkinter.CTkButton(master=self, text="Produkt hinzufügen", font=self.normal_font, command=self.add_button_func, state="disabled")
+        self.add_button.grid(row=5, column=0, pady=20, padx=20, sticky="ew")
+
+        self.cancel_button = customtkinter.CTkButton(master=self, text="Abbrechen", font=self.normal_font, command=self.close)
+        self.cancel_button.grid(row=5, column=1, pady=20, padx=20, sticky="ew")
         pass
 
-    def handle_product(self):
+    def handle_product(self, product):
+        cur.execute(f"SELECT stock FROM products WHERE name='{product}'")
+        answer = cur.fetchall()
+        cur.execute(f"SELECT price FROM products WHERE name='{product}'")
+        priceanswer = cur.fetchall()
+        priceanswer = priceanswer[0][0]
+        priceanswer = float(priceanswer)
+        self.price = priceanswer
+        print(f"Price: {priceanswer} Type: {type(priceanswer)}")
+        answer = int(answer[0][0])
+        if answer == "" or answer == 0:
+            self.messagelabel.configure(text="Das Produkt ist im Lager nicht mehr vorhanden!", text_color=self.warning_color)
+            pass
+        else:
+            self.product = product
+            self.stock = answer
+            self.add_button.configure(state="normal")
+            pass
+    
+    def add_button_func(self):
+        amount = self.amountentry.get()
+        try:
+            amount = int(amount)
+            if amount < 1:
+                self.messagelabel.configure(text="Die Menge muss über Null sein!", text_color=self.warning_color)
+        except:
+            self.messagelabel.configure(text="Es muss eine Menge angegeben werden!", text_color=self.warning_color)
+        self.add_product(self.product, self.price, amount)
+        pass
+
+    def add_product(self, product: str, price: float, amount: int):
+        """Fügt dem ItemCart das entsprechende Produkt hinzu
+
+        Args:
+            product (str): Der Name des Produktes
+            price (float): Der Preis des Produktes
+            amount (int): Die Menge des Produktes
+        """
+        global totalvalue
+        nprice = (price * amount)
+        print(f"Price: {price}   Amount: {amount}   Multiply: {nprice}")
+        nprice = round(nprice, 2)
+        nprice = int(nprice)
+        string = cf.display(name=product, price=nprice, amount=amount)
+        totalvalue = totalvalue + nprice
+        self.addtocartreadback(string=string, total=totalvalue)
+
         pass
 
     def startup(self):
@@ -142,7 +201,7 @@ class TopLevelItemList(customtkinter.CTkToplevel):
         self.grab_release()
         self.destroy()
 
-class AddProducts(customtkinter.CTkToplevel):
+class CreateProduct(customtkinter.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -594,7 +653,7 @@ class App(customtkinter.CTk):
         self.buttons = Buttons(self, command_add=self.addtocartreally, total_func=self.Total_popup, itemlist_func=self.Itemlist_popup, fg_color="transparent")
         self.buttons.grid(row=2, column=0, rowspan=2, padx=5, pady=10, sticky="nse")
 
-        self.verwaltungsbnts = VerwaltungsButtons(self, addProducts_func=self.createproduct, deleteProduct_func=self.deleteproduct, editProduct_func=self.editproduct)
+        self.verwaltungsbnts = VerwaltungsButtons(self, createProducts_func=self.createproduct, deleteProduct_func=self.deleteproduct, editProduct_func=self.editproduct)
         self.verwaltungsbnts.grid(row=2, column=0, rowspan=2, padx=5, pady=10, sticky="nw")
 
         self.CartList = customtkinter.CTkTextbox(master=self, state="disabled", activate_scrollbars=False, font=self.list_font)
@@ -626,7 +685,7 @@ class App(customtkinter.CTk):
         pass
 
     def createproduct(self):
-        AddProducts()
+        CreateProduct()
     
     def deleteproduct(self):
         Remove_Product()
@@ -665,7 +724,18 @@ class App(customtkinter.CTk):
         itemlist = []
 
     def addtocartreally(self):
-        AddToCart()
+        AddToCart(addtocartreadback=self.addtocartreadback)
+    
+    def addtocartreadback(self, string: str, total: int):
+        self.CartList.configure(state="normal")
+        self.CartList.insert("0.0", "\n")
+        self.CartList.insert("0.0", string)
+        self.CartList.configure(state="disabled")
+        self.totalvaluefield.configure(state="normal")
+        self.totalvaluefield.delete("0.0", "end")
+        self.totalvaluefield.insert("0.0", f"{total} €")
+        self.totalvaluefield.configure(state="disabled")
+        pass
 
     def addtocart(self):
         self.errormessage.configure(text="")
