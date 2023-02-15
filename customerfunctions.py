@@ -52,3 +52,26 @@ def display(name, price, amount="1x"):
     amount = amount.strip()
     string = amount + " " + name + strspaces + pricestr + " €"
     return string
+
+def get_customer_card():
+    """
+    Returns the customer card (if any)
+    """
+    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    goOn = True
+    cycle = 0
+    while goOn:
+        if cycle == 10:
+            break
+        else:
+            _, frame = cap.read()
+            gray_image = cv2.cvtColor(frame, 0)
+            barcode = decode(gray_image)
+
+            if len(barcode) < 1:
+                cycle += 1
+                continue
+            else:
+                for obj in barcode:
+                    barcodeData = obj.data.decode("utf-8")
+                    return barcodeData

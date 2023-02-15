@@ -182,10 +182,19 @@ class WelcomeFrame(customtkinter.CTkFrame):
     def create_widgets(self):
 
         self.header = customtkinter.CTkLabel(master=self, text=self.translation['welcome_header'])
-        self.header.grid(row=0, column=0, columnspan=3, sticky="ew")
+        self.header.grid(row=0, column=0, columnspan=3, sticky="ew", pady=50, padx=50)
 
         self.scanlabel = customtkinter.CTkLabel(master=self, text=self.translation['scanlabel'])
+        self.scanlabel.grid(row=1, column=1, sticky="ew", pady=20, padx=20)
 
+        self.scancustomercard = customtkinter.CTkButton(master=self, text="]Placeholder]", font=self.font_normal, command=self.check_for_customer_card)
+        self.scancustomercard.grid(row=2, column=1, sticky="ew", pady=20, padx=20)
+
+        pass
+
+    def check_for_customer_card(self):
+        data = cf.get_customer_card()
+        print(f"Data: {data}")
         pass
 
 conn = sqlite3.connect("database.db")
